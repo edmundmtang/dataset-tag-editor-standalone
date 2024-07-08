@@ -1,6 +1,8 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING, Callable
 import gradio as gr
+from pathlib import Path
+import logger
 
 from dte_instance import dte_module
 from utilities import wrap_queued_call
@@ -108,9 +110,13 @@ class EditCaptionOfSelectedImageUI(UIBase):
         self.btn_apply_changes_selected_image = gr.Button(
             value="Apply changes to selected image", variant="primary"
         )
+        self.btn_save_changes_selected_image = gr.Button(
+            value="Apply and save changes to selected image", variant="primary"
+        )
         self.btn_apply_changes_all_images = gr.Button(
             value="Apply changes to ALL displayed images", variant="primary"
         )
+
 
         gr.HTML(
             """Changes are not applied to the text files until the "Save all changes" button is pressed."""
@@ -301,7 +307,7 @@ class EditCaptionOfSelectedImageUI(UIBase):
             outputs=o_update_filter_and_gallery
         )
 
-        def apply_chages_all(tags_text: str, sort: bool, sort_by: str, sort_order: str):
+        def apply_changes_all(tags_text: str, sort: bool, sort_by: str, sort_order: str):
             self.change_is_saved = True
             img_paths = dte_instance.get_filtered_imgpaths(filters=get_filters())
 
@@ -318,7 +324,7 @@ class EditCaptionOfSelectedImageUI(UIBase):
             return update_filter_and_gallery()
 
         self.btn_apply_changes_all_images.click(
-            fn=apply_chages_all,
+            fn=apply_changes_all,
             inputs=[
                 self.tb_edit_caption,
                 self.cb_sort_caption_on_save,
@@ -360,3 +366,41 @@ class EditCaptionOfSelectedImageUI(UIBase):
         self.tb_caption.change(**update_caption_token_counter_args)
         self.tb_edit_caption.change(**update_edit_caption_token_counter_args)
         self.tb_interrogate.change(**update_interrogate_token_counter_args)
+
+        def apply_and_save_changes_one_file(
+            tags_text: str, sort: bool, sort_by: str, sort_order: str
+        ):
+            self.change_is_saved = True
+            idx = int(self.current_idx)
+            img_paths = dte_instance.get_filtered_imgpaths(filters=get_filters())
+            edited_tags = [t.strip() for t in tags_text.split(",")]
+            edited_tags = [t for t in edited_tags if t]
+
+            if sort:
+                edited_tags = dte_instance.sort_tags(
+                    edited_tags, SortBy(sort_by), SortOrder(sort_order)
+                )
+
+            if 0 <= idx and idx < len(img_paths):
+                img_path = Path(img_paths[idx])
+                caption_ext = ".txt"
+                txt_path = img_path.with_suffix(caption_ext)
+                print(txt_path)
+                try:
+                    txt_path.write_text(", ".join(edited_tags), "utf8")
+                except Exception as e:
+                    logger.error(e)
+                    logger.warn(f"Warning: {txt_path} cannot be saved.")
+
+            return update_filter_and_gallery()
+
+        self.btn_save_changes_selected_image.click(
+            fn=apply_and_save_changes_one_file,
+            inputs=[
+                self.tb_edit_caption,
+                self.cb_sort_caption_on_save,
+                self.rb_sort_by,
+                self.rb_sort_order,
+            ],
+            outputs=o_update_filter_and_gallery
+        )
