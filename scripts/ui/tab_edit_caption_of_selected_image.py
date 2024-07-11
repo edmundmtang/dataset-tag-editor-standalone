@@ -385,9 +385,9 @@ class EditCaptionOfSelectedImageUI(UIBase):
                 img_path = Path(img_paths[idx])
                 caption_ext = ".txt"
                 txt_path = img_path.with_suffix(caption_ext)
-                print(txt_path)
                 try:
                     txt_path.write_text(", ".join(edited_tags), "utf8")
+                    print(f"Saved labels to: {txt_path}")
                 except Exception as e:
                     logger.error(e)
                     logger.warn(f"Warning: {txt_path} cannot be saved.")
