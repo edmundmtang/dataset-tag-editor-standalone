@@ -1,3 +1,6 @@
+from pathlib import Path
+
+
 class Data:
     def __init__(self, imgpath: str, caption: str):
         self.imgpath = imgpath
@@ -54,9 +57,9 @@ class Dataset:
         return self.datas.get(path)
 
     def get_data_tags(self, path: str):
-        data = self.get_data(path)
+        data = load_caption(path)
         if data:
-            return data.tags
+            return data
         else:
             return []
 
@@ -75,3 +78,18 @@ class Dataset:
 
     def get_taglist(self):
         return [t for t in self.get_tagset()]
+
+
+def load_caption(abs_path):
+    img_path = Path(abs_path)
+    text_path = img_path.with_suffix(".txt")
+    caption_text = ""
+    if text_path.is_file():
+        caption_text = text_path.read_text("utf8")
+    else:
+        caption_text = img_path.stem
+
+    caption_tags = [t.strip() for t in caption_text.split(",")]
+    caption_tags = [t for t in caption_tags if t]
+
+    return caption_tags

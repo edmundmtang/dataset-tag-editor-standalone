@@ -150,7 +150,7 @@ class DatasetTagEditor(Singleton):
             self.construct_tag_infos()
         return {key for key in self.tag_counts.keys()}
 
-    def get_tags_by_image_path(self, imgpath: str):
+    def get_tags_by_image_path(self, imgpath: str): # EDO: Make this try to load from text and update the dataset first?
         return self.dataset.get_data_tags(imgpath)
 
     def set_tags_by_image_path(self, imgpath: str, tags: list[str]):

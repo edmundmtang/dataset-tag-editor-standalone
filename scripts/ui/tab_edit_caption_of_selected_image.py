@@ -153,7 +153,7 @@ class EditCaptionOfSelectedImageUI(UIBase):
                 self.prev_idx = -1
 
             next_tags_txt = ""
-            if 0 <= self.current_idx and self.current_idx < len(img_paths):
+            if 0 <= self.current_idx and self.current_idx < len(img_paths): # EDO: This is where we get the current tags?
                 next_tags_txt = ", ".join(
                     dte_instance.get_tags_by_image_path(img_paths[self.current_idx])
                 )
